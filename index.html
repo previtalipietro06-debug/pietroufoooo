@@ -1,148 +1,146 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UFO Jump Fix</title>
-    <style>
-        body { margin: 0; overflow: hidden; background: #050510; font-family: 'Courier New', Courier, monospace; }
-        canvas { display: block; touch-action: none; }
-        #ui { position: absolute; top: 10px; left: 10px; color: #0f0; font-size: 20px; text-shadow: 2px 2px #000; z-index: 10; pointer-events: none; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Valentine 💖</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Comic Sans MS', cursive;
+      overflow: hidden;
+    }
+
+    .card {
+      background: white;
+      padding: 35px;
+      border-radius: 25px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      z-index: 2;
+      max-width: 320px;
+    }
+
+    .photo {
+      width: 200px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      color: #ff4d6d;
+      font-size: 22px;
+      margin-bottom: 25px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #yes {
+      background: #ff4d6d;
+      color: white;
+    }
+
+    #yes:hover {
+      transform: scale(1.1);
+    }
+
+    #no {
+      background: #ccc;
+      color: black;
+      position: relative;
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 20px;
+      animation: float 6s infinite ease-in;
+      opacity: 0.7;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-800px); opacity: 0; }
+    }
+  </style>
 </head>
+
 <body>
-    <div id="ui">SCORE: <span id="score">0</span></div>
-    <canvas id="gameCanvas"></canvas>
 
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('score');
+  <div class="card">
+    <!-- CAMBIA IL NOME DEL FILE DELLA FOTO QUI -->
+    <img src="foto.jpg" class="photo">
 
-// Adattamento schermo
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+    <h1>
+      Erini, I love you 💖<br>
+      Will you be my Valentine?
+    </h1>
 
-let score = 0;
-let gameActive = true;
-const faceImg = new Image();
-faceImg.src = 'https://i.imgur.com'; // Link temporaneo
+    <div class="buttons">
+      <button id="yes" onclick="yesClick()">Sì 💘</button>
+      <button id="no" onmouseover="moveNo()">No 💔</button>
+    </div>
+  </div>
 
-const player = {
-    x: canvas.width / 2 - 30,
-    y: canvas.height - 150,
-    w: 60, h: 80,
-    vy: 0, gravity: 0.5, jump: -15,
-    vx: 0, speed: 7
-};
-
-const platforms = [];
-for(let i=0; i<8; i++) {
-    platforms.push({
-        x: Math.random() * (canvas.width - 80),
-        y: canvas.height - (i * (canvas.height / 7)),
-        w: 80, h: 20
-    });
-}
-
-function update() {
-    if (!gameActive) return;
-
-    player.vy += player.gravity;
-    player.y += player.vy;
-    player.x += player.vx;
-
-    // Bordi schermo
-    if (player.x < 0) player.x = canvas.width;
-    if (player.x > canvas.width) player.x = 0;
-
-    // Movimento telecamera e punteggio
-    if (player.y < canvas.height / 2) {
-        let diff = canvas.height / 2 - player.y;
-        player.y = canvas.height / 2;
-        score += 1;
-        scoreElement.innerText = score;
-        platforms.forEach(p => {
-            p.y += diff;
-            if (p.y > canvas.height) {
-                p.y = 0;
-                p.x = Math.random() * (canvas.width - 80);
-            }
-        });
+  <script>
+    function yesClick() {
+      document.body.innerHTML = `
+        <div style="
+          height:100vh;
+          display:flex;
+          justify-content:center;
+          align-items:center;
+          background:linear-gradient(135deg,#ff9a9e,#fad0c4);
+          font-family:'Comic Sans MS',cursive;
+          text-align:center;">
+          <h1 style="color:#ff4d6d;">
+            YEEEES 😍💖<br>
+            Happy Valentine’s Day!
+          </h1>
+        </div>
+      `;
     }
 
-    // Collisioni
-    platforms.forEach(p => {
-        if (player.vy > 0 && 
-            player.x + player.w > p.x && player.x < p.x + p.w &&
-            player.y + player.h > p.y && player.y + player.h < p.y + p.h + 10) {
-            player.vy = player.jump;
-        }
-    });
-
-    if (player.y > canvas.height) {
-        alert("GAME OVER! Score: " + score);
-        resetGame();
+    function moveNo() {
+      const noBtn = document.getElementById("no");
+      const x = Math.random() * 300 - 150;
+      const y = Math.random() * 200 - 100;
+      noBtn.style.transform = `translate(${x}px, ${y}px)`;
     }
-}
 
-function draw() {
-    ctx.fillStyle = '#050510';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    function createHeart() {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.innerHTML = "💖";
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.fontSize = Math.random() * 20 + 15 + "px";
+      document.body.appendChild(heart);
 
-    // Disegna UFO
-    platforms.forEach(p => {
-        ctx.fillStyle = '#00ff88';
-        ctx.beginPath();
-        ctx.ellipse(p.x + 40, p.y + 10, 40, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(p.x + 30, p.y - 5, 20, 5);
-    });
-
-    // Disegna Personaggio (Vestito)
-    ctx.fillStyle = '#ff00ff'; // Corpo viola divertente
-    ctx.fillRect(player.x + 10, player.y + 30, 40, 40);
-    
-    // Testa (Foto o Rettangolo se non carica)
-    if (faceImg.complete && faceImg.naturalWidth !== 0) {
-        ctx.drawImage(faceImg, player.x, player.y, 60, 60);
-    } else {
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillRect(player.x, player.y, 60, 60);
+      setTimeout(() => heart.remove(), 6000);
     }
-}
 
-function resetGame() {
-    score = 0;
-    player.y = canvas.height - 150;
-    player.vy = 0;
-    gameActive = true;
-}
+    setInterval(createHeart, 300);
+  </script>
 
-// Ciclo principale fluido
-function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
-// CONTROLLI TASTIERA
-window.onkeydown = (e) => {
-    if(e.key === "ArrowLeft") player.vx = -player.speed;
-    if(e.key === "ArrowRight") player.vx = player.speed;
-};
-window.onkeyup = () => player.vx = 0;
-
-// CONTROLLI TOUCH/MOUSE (Per sbloccare il movimento se la tastiera fallisce)
-window.onmousedown = window.ontouchstart = (e) => {
-    const clickX = e.touches ? e.touches[0].clientX : e.clientX;
-    if (clickX < canvas.width / 2) player.vx = -player.speed;
-    else player.vx = player.speed;
-};
-window.onmouseup = window.ontouchend = () => player.vx = 0;
-
-gameLoop(); // Avvio forzato
-</script>
 </body>
 </html>
