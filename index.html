@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UFO Jump: Hero Edition</title>
+    <title>UFO Jump: GitHub Edition</title>
     <style>
         body { margin: 0; overflow: hidden; background: #020205; font-family: 'Arial Black', sans-serif; }
         canvas { display: block; touch-action: none; cursor: pointer; }
-        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: #0f0; font-size: 30px; text-shadow: 0 0 10px #0f0; pointer-events: none; }
-        #inst { position: absolute; bottom: 20px; width: 100%; text-align: center; color: white; font-size: 14px; opacity: 0.7; }
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: #0f0; font-size: 30px; text-shadow: 0 0 10px #0f0; pointer-events: none; z-index: 10; }
+        #inst { position: absolute; bottom: 20px; width: 100%; text-align: center; color: white; font-size: 14px; opacity: 0.7; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="ui">PUNTI: <span id="score">0</span></div>
-    <div id="inst">Usa le FRECCE o CLICCA ai lati per muoverti</div>
+    <div id="inst">Frecce o Click/Touch ai lati per saltare tra gli UFO</div>
     <canvas id="gameCanvas"></canvas>
 
 <script>
@@ -24,19 +24,31 @@ const scoreElement = document.getElementById('score');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// --- CONFIGURAZIONE GITHUB ---
+let githubPhotoUrl = 'INSERISCI_QUI_IL_LINK_AL_FILE_SU_GITHUB'; 
+
+// Funzione per convertire il link GitHub in link RAW (leggibile dal gioco)
+function getRawUrl(url) {
+    if (url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
+        return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+    }
+    return url;
+}
+
+const faceImg = new Image();
+faceImg.crossOrigin = "anonymous"; // Necessario per evitare blocchi di sicurezza
+faceImg.src = getRawUrl(githubPhotoUrl);
+
+// Variabili di gioco
 let score = 0;
 let gameActive = true;
-const faceImg = new Image();
-// METTI QUI IL TUO LINK PNG:
-faceImg.src = 'https://i.imgur.com'; 
+let platforms = [];
 
 const player = {
     x: 0, y: 0, w: 60, h: 90,
     vy: 0, gravity: 0.4, jump: -14,
     vx: 0, speed: 8
 };
-
-let platforms = [];
 
 function initGame() {
     score = 0;
@@ -47,10 +59,9 @@ function initGame() {
     player.vx = 0;
     
     platforms = [];
-    // Piattaforma iniziale proprio sotto i piedi
-    platforms.push({ x: canvas.width/2 - 60, y: canvas.height - 110, w: 120, h: 25, isBase: true });
+    // Base sicura
+    platforms.push({ x: canvas.width/2 - 60, y: canvas.height - 110, w: 120, h: 25 });
     
-    // Genera le altre piattaforme verso l'alto
     for(let i=1; i<8; i++) {
         addPlatform(canvas.height - (i * 130));
     }
@@ -62,7 +73,7 @@ function addPlatform(yPos) {
         x: Math.random() * (canvas.width - 100),
         y: yPos,
         w: 100, h: 25,
-        speed: (Math.random() - 0.5) * 3 // Alcuni UFO si muovono!
+        speed: (Math.random() - 0.5) * 3 
     });
 }
 
@@ -73,11 +84,9 @@ function update() {
     player.y += player.vy;
     player.x += player.vx;
 
-    // Effetto "Pac-Man" (esci a destra, rientri a sinistra)
     if (player.x + player.w < 0) player.x = canvas.width;
     if (player.x > canvas.width) player.x = -player.w;
 
-    // Movimento telecamera
     if (player.y < canvas.height / 2) {
         let diff = canvas.height / 2 - player.y;
         player.y = canvas.height / 2;
@@ -93,18 +102,16 @@ function update() {
         });
     }
 
-    // Collisioni con UFO (solo quando si cade)
     if (player.vy > 0) {
         platforms.forEach(p => {
-            if (player.x + 20 < p.x + p.w && player.x + player.w - 20 > p.x &&
+            if (player.x + 15 < p.x + p.w && player.x + player.w - 15 > p.x &&
                 player.y + player.h > p.y && player.y + player.h < p.y + p.h + 15) {
                 player.vy = player.jump;
-                player.y = p.y - player.h; // Evita di incastrarsi
+                player.y = p.y - player.h;
             }
         });
     }
 
-    // Movimento UFO laterale
     platforms.forEach(p => {
         if(p.speed) {
             p.x += p.speed;
@@ -112,47 +119,45 @@ function update() {
         }
     });
 
-    // Game Over migliorato
     if (player.y > canvas.height + 100) {
         gameActive = false;
         setTimeout(() => {
-            if(confirm("OPS! Sei caduto nel vuoto siderale.\nPunteggio: " + score + "\n\nVuoi riprovare?")) {
-                initGame();
-            }
+            if(confirm("GAME OVER! Punteggio: " + score + "\nVuoi riprovare?")) initGame();
         }, 100);
     }
 }
 
 function draw() {
-    // Sfondo spaziale
     ctx.fillStyle = '#020205';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Disegna UFO
     platforms.forEach(p => {
-        ctx.fillStyle = '#333';
-        ctx.beginPath(); // Base grigia
+        ctx.fillStyle = '#444';
+        ctx.beginPath();
         ctx.ellipse(p.x + p.w/2, p.y + 10, p.w/2, 12, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#00ff88'; // Luci verdi
+        ctx.fillStyle = '#00ffcc'; 
         ctx.beginPath();
         ctx.ellipse(p.x + p.w/2, p.y + 5, p.w/3, 8, 0, 0, Math.PI * 2);
         ctx.fill();
     });
 
-    // DISSEGNA PERSONAGGIO VESTITO
-    // Mantello
-    ctx.fillStyle = '#e74c3c';
-    ctx.fillRect(player.x + 5, player.y + 40, player.w - 10, 40);
-    // Vestito (Tutina azzurra)
-    ctx.fillStyle = '#3498db';
+    // VESTITO DIVERTENTE
+    // Mantello rosso
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(player.x + 5, player.y + 45, player.w - 10, 40);
+    // Tutina blu
+    ctx.fillStyle = '#00aaff';
     ctx.fillRect(player.x + 15, player.y + 40, 30, 45);
+    // Cintura oro
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(player.x + 15, player.y + 60, 30, 5);
     
-    // Testa (Tua foto o Segnaposto)
+    // TESTA
     if (faceImg.complete && faceImg.naturalWidth !== 0) {
         ctx.drawImage(faceImg, player.x, player.y, 60, 60);
     } else {
-        ctx.fillStyle = '#f1c40f'; // Faccia gialla se manca la foto
+        ctx.fillStyle = '#f1c40f'; // Giallo se l'immagine non carica
         ctx.beginPath();
         ctx.arc(player.x + 30, player.y + 30, 25, 0, Math.PI * 2);
         ctx.fill();
@@ -170,18 +175,14 @@ window.onkeydown = (e) => {
     if(e.key === "ArrowLeft") player.vx = -player.speed;
     if(e.key === "ArrowRight") player.vx = player.speed;
 };
-window.onkeyup = (e) => {
-    if(["ArrowLeft", "ArrowRight"].includes(e.key)) player.vx = 0;
-};
+window.onkeyup = (e) => player.vx = 0;
 
-// Touch
 canvas.onmousedown = canvas.ontouchstart = (e) => {
     const x = e.touches ? e.touches[0].clientX : e.clientX;
     player.vx = (x < canvas.width / 2) ? -player.speed : player.speed;
 };
 canvas.onmouseup = canvas.ontouchend = () => player.vx = 0;
 
-// Partenza
 initGame();
 gameLoop();
 </script>
