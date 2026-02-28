@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UFO Jump: Space XL</title>
+    <title>UFO Jump: Space XL - Alien Update</title>
     <style>
         body { margin: 0; overflow: hidden; background: #020205; font-family: 'Arial Black', sans-serif; }
         canvas { display: block; touch-action: none; cursor: pointer; }
         #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: #0f0; font-size: 35px; text-shadow: 0 0 15px #0f0; pointer-events: none; z-index: 10; }
+        #sprint-ui { position: absolute; top: 70px; width: 100%; text-align: center; color: #ff0; font-size: 18px; text-shadow: 0 0 10px #f00; pointer-events: none; z-index: 10; }
     </style>
 </head>
 <body>
     <div id="ui">PUNTI: <span id="score">0</span></div>
+    <div id="sprint-ui">SPRINT: <span id="sprints">0</span> (Barra SPAZIO)</div>
     <canvas id="gameCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
+const sprintsElement = document.getElementById('sprints');
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -26,11 +29,12 @@ const faceImg = new Image();
 faceImg.src = 'fotoufo (1).png'; 
 
 let score = 0;
+let sprints = 0;
+let lastSprintMilestone = 0;
 let gameActive = true;
 let platforms = [];
 let stars = [];
 
-// Genera stelle fisse nello sfondo
 for(let i=0; i<120; i++) {
     stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2.5 });
 }
@@ -44,15 +48,16 @@ const player = {
 
 function initGame() {
     score = 0;
+    sprints = 0;
+    lastSprintMilestone = 0;
     scoreElement.innerText = "0";
+    sprintsElement.innerText = "0";
     
-    // Posizione giocatore centrata e sollevata
     player.x = canvas.width / 2 - player.w/2;
     player.y = canvas.height - 300;
     player.vy = 0;
     
     platforms = [];
-    // PIATTAFORMA DI PARTENZA SICURA (Sotto i piedi)
     platforms.push({ 
         x: canvas.width/2 - 125, 
         y: canvas.height - 150, 
@@ -60,7 +65,6 @@ function initGame() {
         speed: 0 
     });
     
-    // Genera gli altri UFO verso l'alto
     for(let i=1; i<7; i++) {
         addPlatform(canvas.height - 150 - (i * 180));
     }
@@ -83,10 +87,16 @@ function update() {
     player.y += player.vy;
     player.x += player.vx;
 
+    // Check sblocco Sprint ogni 50 punti
+    if (score >= lastSprintMilestone + 50) {
+        sprints++;
+        lastSprintMilestone += 50;
+        sprintsElement.innerText = sprints;
+    }
+
     if (player.x + player.w < 0) player.x = canvas.width;
     if (player.x > canvas.width) player.x = -player.w;
 
-    // Telecamera (scorrimento)
     if (player.y < canvas.height / 2.5) {
         let diff = canvas.height / 2.5 - player.y;
         player.y = canvas.height / 2.5;
@@ -107,7 +117,6 @@ function update() {
         });
     }
 
-    // Collisione (Solo in discesa)
     if (player.vy > 0) {
         platforms.forEach(p => {
             if (player.x + 30 < p.x + p.w && player.x + player.w - 30 > p.x &&
@@ -132,7 +141,6 @@ function update() {
 }
 
 function draw() {
-    // Sfondo Spaziale Profondo
     let grd = ctx.createLinearGradient(0, 0, 0, canvas.height);
     grd.addColorStop(0, "#000022");
     grd.addColorStop(0.5, "#050015");
@@ -140,38 +148,42 @@ function draw() {
     ctx.fillStyle = grd;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Disegna Stelle
     ctx.fillStyle = "white";
     stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
 
-    // Disegna UFO GIGANTI
     platforms.forEach(p => {
-        ctx.fillStyle = "rgba(0, 255, 255, 0.2)"; // Cupola
+        // ALIENO DENTRO L'UFO
+        ctx.fillStyle = "#32CD32"; // Verde alieno
+        ctx.beginPath();
+        ctx.arc(p.x + p.w/2, p.y - 5, 12, 0, Math.PI * 2);
+        ctx.fill();
+        // Occhi alieno
+        ctx.fillStyle = "white";
+        ctx.beginPath(); ctx.arc(p.x + p.w/2 - 5, p.y - 8, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x + p.w/2 + 5, p.y - 8, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y - 12, 3, 0, Math.PI*2); ctx.fill(); // Terzo occhio
+
+        // Cupola UFO
+        ctx.fillStyle = "rgba(0, 255, 255, 0.25)";
         ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y + 5, p.w/4, Math.PI, 0); ctx.fill();
         
-        ctx.fillStyle = '#888'; // Disco metallico
+        ctx.fillStyle = '#888';
         ctx.beginPath(); ctx.ellipse(p.x + p.w/2, p.y + 20, p.w/2, 22, 0, 0, Math.PI * 2); ctx.fill();
         
-        // Luci Alieni
         ctx.fillStyle = (Math.floor(Date.now()/300) % 2 == 0) ? '#0f0' : '#0a0';
         for(let i=1; i<=4; i++) {
             ctx.beginPath(); ctx.arc(p.x + (p.w/5)*i, p.y + 20, 7, 0, Math.PI*2); ctx.fill();
         }
     });
 
-    // PERSONAGGIO XL
-    // Mantello
     ctx.fillStyle = '#cc0000';
     ctx.fillRect(player.x + 10, player.y + 65, player.w - 20, 65);
-    // Corpo
     ctx.fillStyle = '#0077ff';
     ctx.fillRect(player.x + 20, player.y + 60, 50, 75);
-    // Scarponi
     ctx.fillStyle = '#cc0000';
     ctx.fillRect(player.x + 20, player.y + 135, 20, 15);
     ctx.fillRect(player.x + 50, player.y + 135, 20, 15);
     
-    // FACCIA
     if (faceImg.complete && faceImg.naturalWidth !== 0) {
         ctx.drawImage(faceImg, player.x, player.y, 90, 90);
     } else {
@@ -186,12 +198,19 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Controlli
 window.onkeydown = (e) => {
     if(e.key === "ArrowLeft") player.vx = -player.speed;
     if(e.key === "ArrowRight") player.vx = player.speed;
+    // Tasto Spazio per lo Sprint
+    if(e.code === "Space" && sprints > 0 && gameActive) {
+        player.vy = -35; // Super spinta verso l'alto
+        sprints--;
+        sprintsElement.innerText = sprints;
+    }
 };
-window.onkeyup = (e) => player.vx = 0;
+window.onkeyup = (e) => {
+    if(e.key === "ArrowLeft" || e.key === "ArrowRight") player.vx = 0;
+};
 
 canvas.onmousedown = canvas.ontouchstart = (e) => {
     const x = e.touches ? e.touches.clientX : e.clientX;
