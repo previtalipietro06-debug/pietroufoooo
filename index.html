@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UFO Jump: Mobile Fixed</title>
+    <title>UFO Jump: Double Face Edition</title>
     <style>
         body { margin: 0; overflow: hidden; background: #020205; font-family: 'Arial Black', sans-serif; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         canvas { display: block; touch-action: none; }
-        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #0f0; font-size: 24px; text-shadow: 0 0 10px #0f0; pointer-events: none; z-index: 10; }
-        #sprint-ui { position: absolute; top: 45px; width: 100%; text-align: center; font-size: 14px; pointer-events: none; z-index: 10; }
-        .ready { color: #0f0; animation: blink 0.5s infinite; }
+        #ui { position: absolute; top: 15px; width: 100%; text-align: center; color: #0f0; font-size: 28px; text-shadow: 0 0 10px #0f0; pointer-events: none; z-index: 10; }
+        #sprint-ui { position: absolute; top: 55px; width: 100%; text-align: center; font-size: 16px; pointer-events: none; z-index: 10; font-weight: bold; }
+        .ready { color: #0f0; text-shadow: 0 0 8px #0f0; }
         .waiting { color: #ff0; }
-        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
@@ -28,8 +27,12 @@ const sprintContainer = document.getElementById('sprint-ui');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// --- CARICAMENTO FOTO ---
 const faceImg = new Image();
 faceImg.src = 'fotoufo (1).png'; 
+
+const alienImg = new Image();
+alienImg.src = 'fotoalieno.png'; // <- QUESTA È LA FOTO PER GLI ALIENI
 
 let score = 0;
 let sprintReady = false;
@@ -39,14 +42,14 @@ let gameActive = true;
 let platforms = [];
 let stars = [];
 
-for(let i=0; i<80; i++) {
-    stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2 });
+for(let i=0; i<100; i++) {
+    stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2.5 });
 }
 
 const player = {
-    x: 0, y: 0, w: 70, h: 110, 
-    vy: 0, gravity: 0.45, jump: -15,
-    vx: 0, speed: 8
+    x: 0, y: 0, w: 80, h: 125, 
+    vy: 0, gravity: 0.45, jump: -16,
+    vx: 0, speed: 10
 };
 
 function initGame() {
@@ -57,16 +60,16 @@ function initGame() {
     player.y = canvas.height - 300;
     player.vy = 0;
     platforms = [];
-    platforms.push({ x: canvas.width/2 - 100, y: canvas.height - 150, w: 200, h: 40, speed: 0 });
+    platforms.push({ x: canvas.width/2 - 120, y: canvas.height - 150, w: 240, h: 45, speed: 0 });
     for(let i=1; i<7; i++) addPlatform(canvas.height - 150 - (i * 180));
     gameActive = true;
 }
 
 function addPlatform(yPos) {
     platforms.push({
-        x: Math.random() * (canvas.width - 150),
-        y: yPos, w: 150, h: 40,
-        speed: (Math.random() - 0.5) * 4 
+        x: Math.random() * (canvas.width - 180),
+        y: yPos, w: 180, h: 45,
+        speed: (Math.random() - 0.5) * 5 
     });
 }
 
@@ -79,7 +82,7 @@ function update() {
     if (remaining <= 0) {
         sprintReady = true;
         sprintContainer.className = "ready";
-        sprintContainer.innerHTML = "SPRINT PRONTO! (TOCCA CON 2 DITA)";
+        sprintContainer.innerHTML = "SPRINT PRONTO! (SPAZIO o 2 DITA)";
     } else {
         sprintReady = false;
         sprintContainer.className = "waiting";
@@ -93,11 +96,12 @@ function update() {
     if (player.x + player.w < 0) player.x = canvas.width;
     if (player.x > canvas.width) player.x = -player.w;
 
-    if (player.y < canvas.height / 3) {
-        let diff = canvas.height / 3 - player.y;
-        player.y = canvas.height / 3;
+    if (player.y < canvas.height / 2.5) {
+        let diff = canvas.height / 2.5 - player.y;
+        player.y = canvas.height / 2.5;
         score += Math.floor(diff * 0.1);
         scoreElement.innerText = score;
+        stars.forEach(s => { s.y += diff * 0.15; if(s.y > canvas.height) s.y = 0; });
         platforms.forEach(p => {
             p.y += diff;
             if (p.y > canvas.height) {
@@ -109,9 +113,10 @@ function update() {
 
     if (player.vy > 0) {
         platforms.forEach(p => {
-            if (player.x + 20 < p.x + p.w && player.x + player.w - 20 > p.x &&
+            if (player.x + 25 < p.x + p.w && player.x + player.w - 25 > p.x &&
                 player.y + player.h > p.y && player.y + player.h < p.y + p.h + 20) {
                 player.vy = player.jump;
+                player.y = p.y - player.h;
             }
         });
     }
@@ -121,66 +126,72 @@ function update() {
         if(p.x < 0 || p.x > canvas.width - p.w) p.speed *= -1;
     });
 
-    if (player.y > canvas.height + 100) {
+    if (player.y > canvas.height + 150) {
         gameActive = false;
-        if(confirm("CADUTO! Punti: " + score + "\nRiunizia?")) initGame();
+        setTimeout(() => { if(confirm("CADUTO! Punti: " + score + "\nRitenta?")) initGame(); }, 100);
     }
 }
 
 function draw() {
-    ctx.fillStyle = "#000015";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
+    let grd = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grd.addColorStop(0, "#000022"); grd.addColorStop(1, "#000000");
+    ctx.fillStyle = grd; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white"; stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
 
     platforms.forEach(p => {
-        ctx.fillStyle = "#32CD32"; // Alieno
-        ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y - 5, 8, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#888"; // Disco
-        ctx.beginPath(); ctx.ellipse(p.x + p.w/2, p.y + 15, p.w/2, 15, 0, 0, Math.PI*2); ctx.fill();
+        // DISEGNA FACCIA ALIENO
+        if (alienImg.complete && alienImg.naturalWidth !== 0) {
+            ctx.drawImage(alienImg, p.x + p.w/2 - 15, p.y - 15, 30, 30);
+        } else {
+            ctx.fillStyle = "#32CD32"; // Fallback verde
+            ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y - 5, 12, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Cupola UFO
+        ctx.fillStyle = "rgba(0, 255, 255, 0.2)";
+        ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y + 5, p.w/4, Math.PI, 0); ctx.fill();
+        
+        ctx.fillStyle = '#888'; // Disco
+        ctx.beginPath(); ctx.ellipse(p.x + p.w/2, p.y + 20, p.w/2, 22, 0, 0, Math.PI * 2); ctx.fill();
+        
+        ctx.fillStyle = (Math.floor(Date.now()/300) % 2 == 0) ? '#0f0' : '#0a0';
+        for(let i=1; i<=4; i++) {
+            ctx.beginPath(); ctx.arc(p.x + (p.w/5)*i, p.y + 20, 7, 0, Math.PI*2); ctx.fill();
+        }
     });
 
-    ctx.fillStyle = '#cc0000'; // Mantello
-    ctx.fillRect(player.x + 10, player.y + 50, player.w - 20, 50);
-    ctx.fillStyle = '#0077ff'; // Corpo
-    ctx.fillRect(player.x + 15, player.y + 45, 40, 60);
+    // Personaggio
+    ctx.fillStyle = '#cc0000'; ctx.fillRect(player.x + 10, player.y + 60, player.w - 20, 60); // Mantello
+    ctx.fillStyle = '#0077ff'; ctx.fillRect(player.x + 18, player.y + 55, 44, 65); // Corpo
+    ctx.fillStyle = '#cc0000'; ctx.fillRect(player.x + 18, player.y + 120, 18, 12); ctx.fillRect(player.x + 44, player.y + 120, 18, 12); // Scarpe
     
     if (faceImg.complete && faceImg.naturalWidth !== 0) {
-        ctx.drawImage(faceImg, player.x, player.y, 70, 70);
+        ctx.drawImage(faceImg, player.x, player.y, 80, 80);
     } else {
         ctx.fillStyle = '#f1c40f';
-        ctx.beginPath(); ctx.arc(player.x + 35, player.y + 35, 30, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(player.x + 40, player.y + 40, 38, 0, Math.PI * 2); ctx.fill();
     }
 }
 
 function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
 
-// CONTROLLI TOUCH AGGIORNATI
+// CONTROLLI TOUCH
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    // Se tocchi con due dita e lo sprint è pronto
     if (e.touches.length >= 2 && sprintReady) {
-        player.vy = -35;
-        lastSprintTime = Date.now();
-        return;
+        player.vy = -35; lastSprintTime = Date.now(); return;
     }
     const touchX = e.touches[0].clientX;
-    // Divide lo schermo a metà esatta
     player.vx = (touchX < canvas.width / 2) ? -player.speed : player.speed;
 }, {passive: false});
 
-canvas.addEventListener('touchend', (e) => {
-    if (e.touches.length === 0) player.vx = 0;
-});
+canvas.addEventListener('touchend', (e) => { if (e.touches.length === 0) player.vx = 0; });
 
-// CONTROLLI TASTIERA PC
+// CONTROLLI PC
 window.onkeydown = (e) => {
     if(e.key === "ArrowLeft") player.vx = -player.speed;
     if(e.key === "ArrowRight") player.vx = player.speed;
-    if(e.code === "Space" && sprintReady) {
-        player.vy = -35;
-        lastSprintTime = Date.now();
-    }
+    if(e.code === "Space" && sprintReady) { player.vy = -35; lastSprintTime = Date.now(); }
 };
 window.onkeyup = () => player.vx = 0;
 
