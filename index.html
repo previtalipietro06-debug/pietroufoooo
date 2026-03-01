@@ -32,7 +32,7 @@ const faceImg = new Image();
 faceImg.src = 'fotoufo (1).png'; 
 
 const alienImg = new Image();
-alienImg.src = 'fotoalieno.png.png'; // <- QUESTA È LA FOTO PER GLI ALIENI
+alienImg.src = 'fotoalieno.png.png'; // <- MANTENUTO NOME FILE ORIGINALE
 
 let score = 0;
 let sprintReady = false;
@@ -139,9 +139,9 @@ function draw() {
     ctx.fillStyle = "white"; stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
 
     platforms.forEach(p => {
-        // DISEGNA FACCIA ALIENO
+        // DISEGNA FACCIA ALIENO (Ingrandita a 60x60)
         if (alienImg.complete && alienImg.naturalWidth !== 0) {
-            ctx.drawImage(alienImg, p.x + p.w/2 - 15, p.y - 15, 30, 30);
+            ctx.drawImage(alienImg, p.x + p.w/2 - 30, p.y - 35, 60, 60);
         } else {
             ctx.fillStyle = "#32CD32"; // Fallback verde
             ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y - 5, 12, 0, Math.PI * 2); ctx.fill();
